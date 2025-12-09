@@ -148,34 +148,6 @@ Available Endpoints:
 - GET /health - Health check endpoint
 - GET /info - Application information
 
-🔧 AWS Setup Instructions
-
-Step 1: Create Parameter Store Values
-```bash
-aws ssm put-parameter --name /myapp/docker/credentials/username --value "YOUR_DOCKER_USERNAME" --type String
-aws ssm put-parameter --name /myapp/docker/credentials/password --value "YOUR_DOCKER_PASSWORD" --type SecureString
-aws ssm put-parameter --name /myapp/docker/registry/url --value "docker.io/YOUR_USERNAME" --type String
-```
-
-Step 2: Create IAM Role for CodeBuild
-Required permissions:
-- AmazonEC2ContainerRegistryPowerUser
-- AmazonSSMReadOnlyAccess
-- CloudWatchLogsFullAccess
-
-Step 3: Create CodeBuild Project
-- Source: GitHub repository
-- Environment: Linux, Standard image
-- Service role: Attach the role from Step 2
-
-Step 4: Create CodePipeline
-- Source stage: GitHub connection
-- Build stage: CodeBuild project
-- Deploy stage: CodeDeploy or ECS (optional)
-
-Step 5: Commit and Push
-Pipeline will automatically trigger on every commit to the main branch.
-
 🎯 Goal of This Project
 
 This repository is built to help learners and DevOps engineers understand:
