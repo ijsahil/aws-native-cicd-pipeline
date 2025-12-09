@@ -88,7 +88,6 @@ aws-native-cicd-pipeline/
 ├── sample-app/
 │   └── app.py               # Flask application source code
 ├── Dockerfile               # Container build instructions
-├── buildspec.yml            # CI build + docker push pipeline
 ├── requirements.txt         # Python dependencies
 └── README.md                # Project documentation
 
@@ -120,7 +119,6 @@ GitHub Webhooks
    - Builds Docker image using Dockerfile
    - Logs in to Docker registry using credentials from Parameter Store
    - Pushes image with version tag and latest tag
-   - Outputs build artifacts (imagedefinitions.json)
 5. CodePipeline triggers CodeDeploy
 6. CodeDeploy deploys the updated version
 7. Application updates automatically
@@ -168,7 +166,6 @@ Required permissions:
 Step 3: Create CodeBuild Project
 - Source: GitHub repository
 - Environment: Linux, Standard image
-- Buildspec: Use buildspec.yml from repository
 - Service role: Attach the role from Step 2
 
 Step 4: Create CodePipeline
