@@ -85,9 +85,11 @@ These are injected into CodeBuild during runtime, ensuring no secrets are expose
 📁 Repository Contents
 aws-native-cicd-pipeline/
 │
-├── sample-app/              # Flask application source
+├── sample-app/
+│   └── app.py               # Flask application source code
 ├── Dockerfile               # Container build instructions
 ├── buildspec.yml            # CI build + docker push pipeline
+├── requirements.txt         # Python dependencies
 └── README.md                # Project documentation
 
 ⚙️ Technologies Used
@@ -110,30 +112,72 @@ GitHub Webhooks
 
 🧪 How the Pipeline Works
 
-1️⃣ Developer pushes code to GitHub
-2️⃣ GitHub notifies AWS CodePipeline
-3️⃣ CodePipeline invokes CodeBuild
-4️⃣ CodeBuild:
+1. Developer pushes code to GitHub
+2. GitHub notifies AWS CodePipeline
+3. CodePipeline invokes CodeBuild
+4. CodeBuild:
+   - Installs dependencies from requirements.txt
+   - Builds Docker image using Dockerfile
+   - Logs in to Docker registry using credentials from Parameter Store
+   - Pushes image with version tag and latest tag
+   - Outputs build artifacts (imagedefinitions.json)
+5. CodePipeline triggers CodeDeploy
+6. CodeDeploy deploys the updated version
+7. Application updates automatically
 
-installs dependencies
+🛠️ Local Setup and Testing
 
-builds Docker image
+Prerequisites:
+- Python 3.9+
+- Docker installed
+- AWS CLI configured
 
-logs in to Docker registry
+Test Locally Without Docker:
+```bash
+pip install -r requirements.txt
+python sample-app/app.py
+```
+Access at: http://localhost:5000
 
-pushes image
+Test with Docker:
+```bash
+docker build -t myapp:latest .
+docker run -p 5000:5000 myapp:latest
+```
 
-outputs build artifacts
+Available Endpoints:
+- GET / - Welcome message
+- GET /health - Health check endpoint
+- GET /info - Application information
 
-5️⃣ CodePipeline triggers CodeDeploy
-6️⃣ CodeDeploy deploys the updated version
-7️⃣ Application updates automatically
+🔧 AWS Setup Instructions
 
-📸 Diagram Reference
+Step 1: Create Parameter Store Values
+```bash
+aws ssm put-parameter --name /myapp/docker/credentials/username --value "YOUR_DOCKER_USERNAME" --type String
+aws ssm put-parameter --name /myapp/docker/credentials/password --value "YOUR_DOCKER_PASSWORD" --type SecureString
+aws ssm put-parameter --name /myapp/docker/registry/url --value "docker.io/YOUR_USERNAME" --type String
+```
 
-The architecture above is directly derived from your sketch:
+Step 2: Create IAM Role for CodeBuild
+Required permissions:
+- AmazonEC2ContainerRegistryPowerUser
+- AmazonSSMReadOnlyAccess
+- CloudWatchLogsFullAccess
 
-(If you want, I can recreate this sketch into a clean digital diagram.)
+Step 3: Create CodeBuild Project
+- Source: GitHub repository
+- Environment: Linux, Standard image
+- Buildspec: Use buildspec.yml from repository
+- Service role: Attach the role from Step 2
+
+Step 4: Create CodePipeline
+- Source stage: GitHub connection
+- Build stage: CodeBuild project
+- Deploy stage: CodeDeploy or ECS (optional)
+
+Step 5: Commit and Push
+Pipeline will automatically trigger on every commit to the main branch.
 
 🎯 Goal of This Project
 
